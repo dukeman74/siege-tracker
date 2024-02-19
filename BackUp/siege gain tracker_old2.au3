@@ -179,22 +179,23 @@ While True
 						If StringLeft($bind, 1) == 'F' Then
 							$k = "{" & $bind & "}"
 						EndIf
-						If $classic Then
-							ControlSend("Ultima Online", "", "", $k)
 						Else
-							Send($k)
-							;ControlSend("UOSA","","",$k)
+							If $classic Then
+								ControlSend("Ultima Online", "", "", $k)
+							Else
+								Send($k)
+								;ControlSend("UOSA","","",$k)
+							EndIf
+							;ConsoleWrite("Sending: " & $k & @CRLF)
+							$last_press = TimerInit()
 						EndIf
-						ConsoleWrite("Sending: " & $k & @CRLF)
-						$last_press = TimerInit()
 					EndIf
+				Else
+					$display_mins = Int($t / 60)
+					$display_seconds = $t - 60 * $display_mins
+					$t = $display_mins & ':' & $display_seconds
+					GUICtrlSetColor($gui_time[$i], 0xff0000)
 				EndIf
-			Else
-				$display_mins = Int($t / 60)
-				$display_seconds = $t - 60 * $display_mins
-				$t = $display_mins & ':' & $display_seconds
-				GUICtrlSetColor($gui_time[$i], 0xff0000)
-			EndIf
 			GUICtrlSetData($gui_time[$i], $t)
 		Next
 	EndIf

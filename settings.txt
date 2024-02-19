@@ -1,6 +1,7 @@
-WINDOWX=1764
-WINDOWY=128
+WINDOWX=1746
+WINDOWY=105
 SEARCHCHARS=600
 USECLASSIC=0
+USEBINDS=1
 ENHANCEDPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log
 CLASSICPATH=C:\Users\admin\Documents\EA Games\Ultima Online Legacy\User Data\derbartman\Siege Perilous\Moral Imperative\Journal.txt
