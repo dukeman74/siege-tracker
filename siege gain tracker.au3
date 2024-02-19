@@ -28,15 +28,18 @@ $classic=False
 $minh=30
 global $guu
 $max_skills=9
+$chars_back_inloop=600
+
 
 Global $gui_lines[$max_skills+1]
 Global $gui_time[$max_skills+1]
 Global $time_and_skill[$max_skills+1][2]
 Global $skill_lines=0
-
 Global $settingfd = FileOpen("settings.txt", $FO_READ)
+
 $winx=int(read_setting())
 $winy=int(read_setting())
+$chars_back_inloop=read_setting()
 $classic=int(read_setting())
 $epath=read_setting()
 $cpath=read_setting()
@@ -67,7 +70,7 @@ While True
 			error_quit("log file failed to open")
 		EndIf
 		FileSetPos($fd,-$charback,$FILE_END)
-		$charback=600
+		$charback=$chars_back_inloop
 		;ConsoleWrite("reading log -- " & @CRLF)
 		FileReadLine($fd)
 		$l=FileReadLine($fd)
@@ -189,6 +192,7 @@ Func MyQuit()
 	EndIf
 	FileWriteLine($settingsfd,"WINDOWX="&$x)
 	FileWriteLine($settingsfd,"WINDOWY="&$y)
+	FileWriteLine($settingsfd,"SEARCHCHARS="&$chars_back_inloop)
 	FileWriteLine($settingsfd,"USECLASSIC="&$classic)
 	FileWriteLine($settingsfd,"ENHANCEDPATH="&$epath)
 	FileWriteLine($settingsfd,"CLASSICPATH="&$cpath)
