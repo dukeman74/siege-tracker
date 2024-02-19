@@ -114,7 +114,7 @@ While True
 				GUIDelete($guu)
 				redo_gui()
 			EndIf
-		_ArraySort($time_and_skill,False,0,1,0)
+		sort()
 		for $i=0 to $skill_lines
 			if $gui_lines[$i]==0 Then
 				$gui_lines[$i]=GUICtrlCreateLabel("",35,$i*$line_dist+5,$winwidth,25)
@@ -146,6 +146,24 @@ func redo_gui()
 		$gui_lines[$i]=0
 		$gui_time[$i]=0
 	Next
+EndFunc
+
+Func sort()
+	Local $storet, $storemsg
+	$i=-1
+	$end=$skill_lines-1
+	While $i<$end
+		$i+=1
+		if $time_and_skill[$i][0] > $time_and_skill[$i+1][0] Then
+			$storet=$time_and_skill[$i][0]
+			$storemsg=$time_and_skill[$i][1]
+			$time_and_skill[$i][0]=$time_and_skill[$i+1][0]
+			$time_and_skill[$i][1]=$time_and_skill[$i+1][1]
+			$time_and_skill[$i+1][0]=$storet
+			$time_and_skill[$i+1][1]=$storemsg
+			$i=-1
+		EndIf
+	WEnd
 EndFunc
 
 func get_time_req($skill_level)
