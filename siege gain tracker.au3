@@ -192,6 +192,9 @@ While True
 			Else
 				$display_mins = Int($t / 60)
 				$display_seconds = $t - 60 * $display_mins
+				if StringLen($display_seconds)==1 Then
+					$display_seconds="0"&$display_seconds
+				EndIf
 				$t = $display_mins & ':' & $display_seconds
 				GUICtrlSetColor($gui_time[$i], 0xff0000)
 			EndIf
