@@ -24,6 +24,7 @@ $defaulty=4
 $winx=$defaultx
 $winy=$defaulty
 $fpath="C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log"
+$classic=False
 $minh=30
 global $guu
 $max_skills=9
@@ -33,10 +34,16 @@ Global $gui_time[$max_skills+1]
 Global $time_and_skill[$max_skills+1][2]
 Global $skill_lines=0
 
-$settingfd = FileOpen("settings.txt", $FO_READ)
-$winx=int(FileReadLine($settingfd))
-$winy=int(FileReadLine($settingfd))
-$fpath=FileReadLine($settingfd)
+Global $settingfd = FileOpen("settings.txt", $FO_READ)
+$winx=int(read_setting())
+$winy=int(read_setting())
+$classic=int(read_setting())
+$epath=read_setting()
+$cpath=read_setting()
+$fpath=$epath
+if $classic==1 Then
+	$fpath=$cpath
+EndIf
 FileClose($settingfd)
 
 
@@ -79,7 +86,11 @@ While True
 					$old=StringSplit($old,",",$STR_NOCOUNT)[0]
 					if $old < $new_val Then
 						ConsoleWrite("skill gain in " & $skill & ": " & $old& "->"& $new_val& @CRLF)
-						$time=StringMid($l,1,20)
+						if $classic Then
+							$time=@YEAR & "/" & @MON & "/" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
+						Else
+							$time=convert_enhanced_timestamp(StringMid($l,1,20))
+						EndIf
 						$dict.Item($skill) = $new_val & "," & $time
 					EndIf
 				EndIf
@@ -146,18 +157,25 @@ func get_time_req($skill_level)
 	EndIf
 EndFunc
 
-Func CalculateTimeDifferenceInSeconds($timestamp)
-    Local $year, $month, $day, $hour, $minute, $second
-    Local $timestampFormatted = StringRegExpReplace($timestamp, "\]\[", " ")
+Func convert_enhanced_timestamp($stamp)
+	Local $timestampFormatted = StringRegExpReplace($stamp, "\]\[", " ")
 	$timestampFormatted = "20" & StringRegExpReplace($timestampFormatted, "\]|\[", "")
+	return($timestampFormatted)
+EndFunc
+
+Func CalculateTimeDifferenceInSeconds($timestamp)
 	Local $currentDateTime = @YEAR & "/" & @MON & "/" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
-	Local $diffInSeconds = _DateDiff("s", $timestampFormatted, $currentDateTime)
+	Local $diffInSeconds = _DateDiff("s", $timestamp, $currentDateTime)
 	Return $diffInSeconds
 EndFunc
 
 Func error_quit($error_string)
 	MsgBox($MB_SYSTEMMODAL, "ERROR", $error_string)
 	MyQuit()
+EndFunc
+
+Func read_setting()
+	return(StringSplit(FileReadLine($settingfd), "=", $STR_NOCOUNT)[1])
 EndFunc
 
 Func MyQuit()
@@ -169,9 +187,11 @@ Func MyQuit()
 		$x=$defaultx
 		$y=$defaulty
 	EndIf
-	FileWriteLine($settingsfd,$x)
-	FileWriteLine($settingsfd,$y)
-	FileWriteLine($settingsfd,$fpath)
+	FileWriteLine($settingsfd,"WINDOWX="&$x)
+	FileWriteLine($settingsfd,"WINDOWY="&$y)
+	FileWriteLine($settingsfd,"USECLASSIC="&$classic)
+	FileWriteLine($settingsfd,"ENHANCEDPATH="&$epath)
+	FileWriteLine($settingsfd,"CLASSICPATH="&$cpath)
 	FileClose($settingsfd)
 	Exit
 EndFunc
