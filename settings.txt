@@ -1,7 +1,10 @@
-WINDOWX=1746
-WINDOWY=105
+WINDOWX=1770
+WINDOWY=4
 SEARCHCHARS=600
 USECLASSIC=0
 USEBINDS=1
+USEALARM=1
+ALARMDELAY=10000
 ENHANCEDPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log
 CLASSICPATH=C:\Users\admin\Documents\EA Games\Ultima Online Legacy\User Data\derbartman\Siege Perilous\Moral Imperative\Journal.txt
+ALARMPATH=soft_alarm.wav

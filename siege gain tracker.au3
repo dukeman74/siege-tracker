@@ -12,6 +12,7 @@
 #include <GuiButton.au3>
 #include <Date.au3>
 #include <File.au3>
+#include <Sound.au3>
 
 HotKeySet("^!q", "MyQuit")
 
@@ -48,11 +49,21 @@ $winy = Int(read_setting())
 $chars_back_inloop = read_setting()
 $classic = Int(read_setting())
 $use_binds = Int(read_setting())
+$use_alarm = Int(read_setting())
+$beep_delay = Int(read_setting())
 $epath = read_setting()
 $cpath = read_setting()
+$alarm_path = read_setting()
 $fpath = $epath
 If $classic == 1 Then
 	$fpath = $cpath
+EndIf
+
+if $use_alarm == 1 Then
+	Global $alarm_sound=_SoundOpen($alarm_path)
+	if $alarm_sound==0 Then
+		error_quit("alarm file failed to open")
+	EndIf
 EndIf
 FileClose($settingfd)
 
@@ -71,6 +82,7 @@ $bind_delay = 6000
 $afk_delay = 5 * 60 * 1000
 $last_press = TimerInit()
 $last_AFK = TimerInit()
+$last_beep=TimerInit()
 
 
 While True
@@ -188,6 +200,13 @@ While True
 						ConsoleWrite("Sending: " & $k & @CRLF)
 						$last_press = TimerInit()
 					EndIf
+				else
+					if $use_alarm Then
+						If TimerDiff($last_beep) > $beep_delay Then
+							$last_beep=TimerInit()
+							_SoundPlay($alarm_sound)
+						EndIf
+					EndIf
 				EndIf
 			Else
 				$display_mins = Int($t / 60)
@@ -302,6 +321,9 @@ Func read_setting()
 EndFunc   ;==>read_setting
 
 Func MyQuit()
+	if $use_alarm Then
+		_SoundClose($alarm_sound)
+	EndIf
 	$settingsfd = FileOpen("settings.txt", $FO_OVERWRITE)
 	$temp = WinGetPos($guu)
 	$y = $temp[1]
@@ -315,8 +337,11 @@ Func MyQuit()
 	FileWriteLine($settingsfd, "SEARCHCHARS=" & $chars_back_inloop)
 	FileWriteLine($settingsfd, "USECLASSIC=" & $classic)
 	FileWriteLine($settingsfd, "USEBINDS=" & $use_binds)
+	FileWriteLine($settingsfd, "USEALARM=" & $use_alarm)
+	FileWriteLine($settingsfd, "ALARMDELAY=" & $beep_delay)
 	FileWriteLine($settingsfd, "ENHANCEDPATH=" & $epath)
 	FileWriteLine($settingsfd, "CLASSICPATH=" & $cpath)
+	FileWriteLine($settingsfd, "ALARMPATH=" & $alarm_path)
 	FileClose($settingsfd)
 	Exit
 EndFunc   ;==>MyQuit
