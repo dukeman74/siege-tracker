@@ -35,6 +35,7 @@ $chars_back_inloop = 600
 
 Global $gui_lines[$max_skills + 1]
 Global $gui_time[$max_skills + 1]
+Global $gui_sound[$max_skills + 1]
 Global $time_and_skill[$max_skills + 1][2]
 Global $skill_lines = 0
 Global $settingfd = FileOpen("settings.txt", $FO_READ)
@@ -99,6 +100,21 @@ While True
 			GUICtrlSetColor($AFK_button, 0x000000)
 		EndIf
 	EndIf
+	for $i = 0 to $skill_lines
+		If $idMsg == $gui_sound[$i] Then
+			$s = $time_and_skill[$i][1]
+			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
+			$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
+			if $old[3]=="1" Then
+				GUICtrlSetImage($gui_sound[$i], "mute.ico")
+				$dict.Item($s)=$old[0] & "," &  $old[1] & "," & $old[2] & "," & "0"
+			Else
+				GUICtrlSetImage($gui_sound[$i], "sound.ico")
+				$dict.Item($s)=$old[0] & "," &  $old[1] & "," & $old[2] & "," & "1"
+			EndIf
+			ExitLoop
+		EndIf
+	Next
 	If $AFK Then
 		If TimerDiff($last_AFK) > $afk_delay Then
 			If $classic Then
@@ -137,21 +153,27 @@ While True
 				$skill_and_after = StringMid($l, $sk + 14)
 				$space = StringInStr($skill_and_after, " ")
 				$skill = StringMid($skill_and_after, 1, $space - 1)
-				$new_val = StringMid($skill_and_after, 35 + $space, 4)
+				;$new_val = StringMid($skill_and_after, 35 + $space, 4)
+				$new_val = StringRight($skill_and_after,7)
+				$new_val=StringLeft($new_val,5)
+				if StringLeft($new_val,1) == " " Then
+					$new_val=StringRight($new_val,4)
+				EndIf
 				If $new_val > 70 Then
-					$old = "0,"
+					$old = "0,,,1"
 					If $dict.Exists($skill) Then
 						$old = $dict.Item($skill)
 					EndIf
-					$old = StringSplit($old, ",", $STR_NOCOUNT)[0]
-					If $old < $new_val Then
-						ConsoleWrite("skill gain in " & $skill & ": " & $old & "->" & $new_val & @CRLF)
+					$old = StringSplit($old, ",", $STR_NOCOUNT)
+					$old_val = $old[0]
+					If $old_val < $new_val Then
+						ConsoleWrite("skill gain in " & $skill & ": " & $old_val & "->" & $new_val & @CRLF)
 						If $classic Then
 							$time = @YEAR & "/" & @MON & "/" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
 						Else
 							$time = convert_enhanced_timestamp(StringMid($l, 1, 20))
 						EndIf
-						$dict.Item($skill) = $new_val & "," & $time
+						$dict.Item($skill) = $new_val & "," & $time & "," & $time & "," & $old[3]
 					EndIf
 				EndIf
 			EndIf
@@ -174,12 +196,26 @@ While True
 		sort()
 		For $i = 0 To $skill_lines
 			If $gui_lines[$i] == 0 Then
-				$gui_lines[$i] = GUICtrlCreateLabel("", 35, $i * $line_dist + 5, $winwidth, 25)
+				$gui_lines[$i] = GUICtrlCreateLabel("", 35, $i * $line_dist + 5, $winwidth-35-20, 25)
 				$gui_time[$i] = GUICtrlCreateLabel("", 1, $i * $line_dist + 5, 30, 25)
+				if $use_alarm Then
+					$gui_sound[$i] = GUICtrlCreateButton("", $winwidth-20, $i * $line_dist + 3,20,20,$BS_ICON)
+					GUICtrlSetImage($gui_sound[$i], "sound.ico")
+				EndIf
 			EndIf
 			$s = $time_and_skill[$i][1]
 			GUICtrlSetData($gui_lines[$i], $s)
 			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
+			if $use_alarm Then
+				$this_skill_beep=True
+				$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
+				if StringSplit($dict.Item($s),",",$STR_NOCOUNT)[3] == "1" Then
+					GUICtrlSetImage($gui_sound[$i], "sound.ico")
+				Else
+					GUICtrlSetImage($gui_sound[$i], "mute.ico")
+					$this_skill_beep=False
+				EndIf
+			EndIf
 			$t = $time_and_skill[$i][0]
 			If $t < 0 Then
 				$t = "GAIN"
@@ -201,9 +237,10 @@ While True
 						$last_press = TimerInit()
 					EndIf
 				else
-					if $use_alarm Then
-						If TimerDiff($last_beep) > $beep_delay Then
-							$last_beep=TimerInit()
+					if $use_alarm and $this_skill_beep Then
+						$last_val=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
+						If TimerDiff($last_val[2]) > $beep_delay Then
+							$dict.Item($s)=$last_val[0] & "," &  $last_val[1] & "," & TimerInit() & "," & $last_val[3]
 							_SoundPlay($alarm_sound)
 						EndIf
 					EndIf
@@ -238,6 +275,7 @@ Func redo_gui()
 	For $i = 0 To $skill_lines
 		$gui_lines[$i] = 0
 		$gui_time[$i] = 0
+		$gui_sound[$i] = -100
 	Next
 	If $use_binds Then
 		$create_binding_button = GUICtrlCreateButton("create binding", 12, ($skill_lines + 1) * $line_dist + 5)
