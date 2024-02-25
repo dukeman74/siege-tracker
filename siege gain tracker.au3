@@ -166,7 +166,7 @@ While True
 						$old = $dict.Item($skill)
 					EndIf
 					$old = StringSplit($old, ",", $STR_NOCOUNT)
-					$old_val = $old[0]
+					$old_val = Number($old[0])
 					If $old_val < $new_val Then
 						ConsoleWrite("skill gain in " & $skill & ": " & $old_val & "->" & $new_val & @CRLF)
 						If $classic Then
@@ -183,7 +183,6 @@ While True
 		FileClose($fd)
 		$i = 0
 		For $vKey In $dict
-			ConsoleWrite("new key just dropped -> " & $vkey & @CRLF)
 			$vals = StringSplit($dict($vKey), ",", $STR_NOCOUNT)
 			$t = get_time_req($vals[0]) - CalculateTimeDifferenceInSeconds($vals[1])
 			$time_and_skill[$i][0] = $t
@@ -204,12 +203,10 @@ While True
 					$gui_sound[$i] = GUICtrlCreateButton("", $winwidth-20, $i * $line_dist + 3,20,20,$BS_ICON)
 					GUICtrlSetImage($gui_sound[$i], "sound.ico")
 				EndIf
-				ConsoleWrite("new line just dropped" & @CRLF)
 			EndIf
 			$s = $time_and_skill[$i][1]
 			GUICtrlSetData($gui_lines[$i], $s)
 			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
-			ConsoleWrite("skill to check: "& $s & @CRLF)
 			if $use_alarm Then
 				$this_skill_beep=True
 				$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
@@ -238,7 +235,7 @@ While True
 							Send($k)
 							;ControlSend("UOSA","","",$k)
 						EndIf
-						ConsoleWrite("Sending: " & $k & @CRLF)
+						;ConsoleWrite("Sending: " & $k & @CRLF)
 						$last_press = TimerInit()
 					EndIf
 				else
