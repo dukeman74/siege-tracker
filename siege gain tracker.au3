@@ -37,7 +37,7 @@ Global $gui_lines[$max_skills + 1]
 Global $gui_time[$max_skills + 1]
 Global $gui_sound[$max_skills + 1]
 Global $time_and_skill[$max_skills + 1][2]
-Global $skill_lines = 0
+Global $skill_lines = -1
 Global $settingfd = FileOpen("settings.txt", $FO_READ)
 Global $create_binding_button, $AFK_button
 Global $binding_skill
@@ -159,6 +159,7 @@ While True
 				if StringLeft($new_val,1) == " " Then
 					$new_val=StringRight($new_val,4)
 				EndIf
+				$new_val=Number($new_val)
 				If $new_val > 70 Then
 					$old = "0,,,1"
 					If $dict.Exists($skill) Then
@@ -182,19 +183,20 @@ While True
 		FileClose($fd)
 		$i = 0
 		For $vKey In $dict
+			ConsoleWrite("new key just dropped -> " & $vkey & @CRLF)
 			$vals = StringSplit($dict($vKey), ",", $STR_NOCOUNT)
 			$t = get_time_req($vals[0]) - CalculateTimeDifferenceInSeconds($vals[1])
 			$time_and_skill[$i][0] = $t
 			$time_and_skill[$i][1] = $vkey & " -> " & $vals[0]
 			$i += 1
 		Next
-		If $i - 1 > $skill_lines Then
-			$skill_lines = $i - 1
+		If $i -1  > $skill_lines Then
+			$skill_lines = $i -1
 			GUIDelete($guu)
 			redo_gui()
 		EndIf
 		sort()
-		For $i = 0 To $skill_lines
+		for $i =0 to $skill_lines
 			If $gui_lines[$i] == 0 Then
 				$gui_lines[$i] = GUICtrlCreateLabel("", 35, $i * $line_dist + 5, $winwidth-35-20, 25)
 				$gui_time[$i] = GUICtrlCreateLabel("", 1, $i * $line_dist + 5, 30, 25)
@@ -202,13 +204,16 @@ While True
 					$gui_sound[$i] = GUICtrlCreateButton("", $winwidth-20, $i * $line_dist + 3,20,20,$BS_ICON)
 					GUICtrlSetImage($gui_sound[$i], "sound.ico")
 				EndIf
+				ConsoleWrite("new line just dropped" & @CRLF)
 			EndIf
 			$s = $time_and_skill[$i][1]
 			GUICtrlSetData($gui_lines[$i], $s)
 			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
+			ConsoleWrite("skill to check: "& $s & @CRLF)
 			if $use_alarm Then
 				$this_skill_beep=True
 				$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
+				ConsoleWrite($old & @CRLF)
 				if StringSplit($dict.Item($s),",",$STR_NOCOUNT)[3] == "1" Then
 					GUICtrlSetImage($gui_sound[$i], "sound.ico")
 				Else
@@ -255,6 +260,7 @@ While True
 				GUICtrlSetColor($gui_time[$i], 0xff0000)
 			EndIf
 			GUICtrlSetData($gui_time[$i], $t)
+			$i+=1
 		Next
 	EndIf
 	Sleep(10)
