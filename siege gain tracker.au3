@@ -196,6 +196,7 @@ While True
 		EndIf
 		sort()
 		for $i =0 to $skill_lines
+			;ConsoleWrite("loop " & $i & @CRLF)
 			If $gui_lines[$i] == 0 Then
 				$gui_lines[$i] = GUICtrlCreateLabel("", 35, $i * $line_dist + 5, $winwidth-35-20, 25)
 				$gui_time[$i] = GUICtrlCreateLabel("", 1, $i * $line_dist + 5, 30, 25)
@@ -205,12 +206,13 @@ While True
 				EndIf
 			EndIf
 			$s = $time_and_skill[$i][1]
-			GUICtrlSetData($gui_lines[$i], $s)
+			$skill_split=StringSplit($s," ",$STR_NOCOUNT)
+			GUICtrlSetData($gui_lines[$i], StringLeft($skill_split[0],10) & " " & $skill_split[1] & " " & $skill_split[2])
 			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
 			if $use_alarm Then
 				$this_skill_beep=True
 				$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
-				ConsoleWrite($old & @CRLF)
+				;ConsoleWrite($old & @CRLF)
 				if StringSplit($dict.Item($s),",",$STR_NOCOUNT)[3] == "1" Then
 					GUICtrlSetImage($gui_sound[$i], "sound.ico")
 				Else
@@ -257,7 +259,6 @@ While True
 				GUICtrlSetColor($gui_time[$i], 0xff0000)
 			EndIf
 			GUICtrlSetData($gui_time[$i], $t)
-			$i+=1
 		Next
 	EndIf
 	Sleep(10)
