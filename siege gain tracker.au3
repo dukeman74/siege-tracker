@@ -153,28 +153,30 @@ While True
 				$skill_and_after = StringMid($l, $sk + 14)
 				$space = StringInStr($skill_and_after, " ")
 				$skill = StringMid($skill_and_after, 1, $space - 1)
-				;$new_val = StringMid($skill_and_after, 35 + $space, 4)
-				$new_val = StringRight($skill_and_after,7)
-				$new_val=StringLeft($new_val,5)
-				if StringLeft($new_val,1) == " " Then
-					$new_val=StringRight($new_val,4)
-				EndIf
-				$new_val=Number($new_val)
-				If $new_val > 70 Then
-					$old = "0,,,1"
-					If $dict.Exists($skill) Then
-						$old = $dict.Item($skill)
+				$after = StringMid($skill_and_after,$space+5,1)
+				if $after == "i" Then
+					$new_val = StringRight($skill_and_after,7)
+					$new_val=StringLeft($new_val,5)
+					if StringLeft($new_val,1) == " " Then
+						$new_val=StringRight($new_val,4)
 					EndIf
-					$old = StringSplit($old, ",", $STR_NOCOUNT)
-					$old_val = Number($old[0])
-					If $old_val < $new_val Then
-						ConsoleWrite("skill gain in " & $skill & ": " & $old_val & "->" & $new_val & @CRLF)
-						If $classic Then
-							$time = @YEAR & "/" & @MON & "/" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
-						Else
-							$time = convert_enhanced_timestamp(StringMid($l, 1, 20))
+					$new_val=Number($new_val)
+					If $new_val > 70 Then
+						$old = "0,,,1"
+						If $dict.Exists($skill) Then
+							$old = $dict.Item($skill)
 						EndIf
-						$dict.Item($skill) = $new_val & "," & $time & "," & $time & "," & $old[3]
+						$old = StringSplit($old, ",", $STR_NOCOUNT)
+						$old_val = Number($old[0])
+						If $old_val < $new_val Then
+							ConsoleWrite("skill gain in " & $skill & ": " & $old_val & "->" & $new_val & @CRLF)
+							If $classic Then
+								$time = @YEAR & "/" & @MON & "/" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
+							Else
+								$time = convert_enhanced_timestamp(StringMid($l, 1, 20))
+							EndIf
+							$dict.Item($skill) = $new_val & "," & $time & "," & $time & "," & $old[3]
+						EndIf
 					EndIf
 				EndIf
 			EndIf
