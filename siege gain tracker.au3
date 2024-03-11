@@ -153,8 +153,8 @@ While True
 				$skill_and_after = StringMid($l, $sk + 14)
 				$space = StringInStr($skill_and_after, " ")
 				$skill = StringMid($skill_and_after, 1, $space - 1)
-				$after = StringMid($skill_and_after,$space+5,1)
-				if $after == "i" Then
+				$up = StringInStr($skill_and_after, "inc")
+				if $up <> 0 Then
 					$new_val = StringRight($skill_and_after,7)
 					$new_val=StringLeft($new_val,5)
 					if StringLeft($new_val,1) == " " Then

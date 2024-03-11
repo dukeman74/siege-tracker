@@ -1,9 +1,9 @@
-WINDOWX=1754
-WINDOWY=905
+WINDOWX=1766
+WINDOWY=807
 SEARCHCHARS=800
-USECLASSIC=0
-USEBINDS=0
-USEALARM=1
+USECLASSIC=1
+USEBINDS=1
+USEALARM=0
 ALARMDELAY=30000
 ENHANCEDPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log
 CLASSICPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Classic\Journal\Journal.txt
