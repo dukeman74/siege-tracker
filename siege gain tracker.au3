@@ -18,12 +18,15 @@
 #include <Date.au3>
 #include <File.au3>
 #include <Sound.au3>
+#include <Misc.au3>
 
 HotKeySet("^!q", "MyQuit")
+HotKeySet("^!t", "test_bind")
 
 $dict = ObjCreate("Scripting.Dictionary")
 $bindings = ObjCreate("Scripting.Dictionary")
 
+Opt("GUICloseOnESC", 0)
 
 $winwidth = 150
 $defaultx = 1920 - $winwidth
@@ -36,7 +39,9 @@ $minh = 30
 Global $guu
 $max_skills = 9
 $chars_back_inloop = 600
-
+$clicking = False
+$used_clicks=0
+Global $click_string=""
 
 Global $gui_lines[$max_skills + 1]
 Global $gui_time[$max_skills + 1]
@@ -44,7 +49,7 @@ Global $gui_sound[$max_skills + 1]
 Global $time_and_skill[$max_skills + 1][2]
 Global $skill_lines = -1
 Global $settingfd = FileOpen("settings.txt", $FO_READ)
-Global $create_binding_button, $AFK_button
+Global $create_binding_button, $AFK_button, $save_button, $load_button
 Global $binding_skill
 Global $binding_key
 Global $bindings_label
@@ -89,7 +94,11 @@ $afk_delay = 5 * 60 * 1000
 $last_press = TimerInit()
 $last_AFK = TimerInit()
 $last_beep=TimerInit()
-
+$last_click=TimerInit()
+$hDLL = DllOpen("user32.dll")
+Global $click_s
+Global $last_down = False
+Global $last_dbl
 
 While True
 	$idMsg = GUIGetMsg()
@@ -97,6 +106,10 @@ While True
 		MyQuit()
 	ElseIf $idMsg == $create_binding_button Then
 		bind()
+	ElseIf $idMsg == $save_button Then
+		save_bindings()
+	ElseIf $idMsg == $load_button Then
+		load_bindings()
 	ElseIf $idMsg == $AFK_button Then
 		$AFK = Not $AFK
 		If $AFK Then
@@ -104,6 +117,21 @@ While True
 		Else
 			GUICtrlSetColor($AFK_button, 0x000000)
 		EndIf
+	EndIf
+	if $clicking Then
+		If _IsPressed("1B", $hDLL) Then
+			conclude_points()
+		EndIf
+		If _IsPressed("53", $hDLL) Then
+			if $last_down and TimerDiff($last_click)>700 Then
+				convert_last_to_double()
+			ElseIf not $last_down Then
+				add_point()
+				$last_click=TimerInit()
+			EndIf
+		EndIf
+		$last_down=_IsPressed("53", $hDLL)
+		ContinueLoop
 	EndIf
 	for $i = 0 to $skill_lines
 		If $idMsg == $gui_sound[$i] Then
@@ -234,24 +262,7 @@ While True
 				If $bindings.Exists($s) Then
 					$bind = $bindings.Item($s)
 					If TimerDiff($last_press) > $bind_delay Then
-						$k = $bind
-						If StringLeft($bind, 1) == 'F' Then
-							$k = "{" & $bind & "}"
-						EndIf
-						If $classic Then
-							$wind = WinGetHandle("Ultima Online")
-							if @error <> 0 Then
-								error_quit("can't find uo window")
-							EndIf
-							if $k == "click" Then
-								VirtualMouseClick($wind,0,1)
-							EndIf
-							ControlSend($wind, "", "", $k)
-						Else
-							Send($k)
-							;ControlSend("UOSA","","",$k)
-						EndIf
-						;ConsoleWrite("Sending: " & $k & @CRLF)
+						follow_bind($bind)
 						$last_press = TimerInit()
 					EndIf
 				else
@@ -282,47 +293,184 @@ While True
 	EndIf
 WEnd
 
+Func test_bind()
+	$s = GUICtrlRead($binding_skill)
+	follow_bind($bindings.Item($s))
+EndFunc
+
+Func follow_bind($bind)
+	$k = $bind
+	$clicking_bind=false
+	If StringLeft($bind, 1) == 'F' Then
+		$k = "{" & $bind & "}"
+	ElseIf StringLeft($bind, 5) == "Click" Then
+		$clicking_bind=True
+	EndIf
+	If $classic Then
+		$wind = WinGetHandle("Ultima Online")
+		if @error <> 0 Then
+			error_quit("can't find uo window")
+		EndIf
+		if $clicking_bind Then
+			$clicks = StringSplit(StringSplit($k,"|",$STR_NOCOUNT)[1],";")
+			Local $click
+			Local $bd
+			for $i = 1 to $clicks[0]
+				$click=$clicks[$i]
+				$db=false
+				if StringLeft($click,1)==':' Then
+					$click=StringMid($click,2)
+					$db=true
+				EndIf
+				$pts=StringSplit($click,",",$STR_NOCOUNT)
+				if $db Then
+					ConsoleWrite("double clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
+					VirtualMouseDClick($wind,$pts[0],$pts[1])
+				Else
+					ConsoleWrite("clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
+					VirtualMouseClick($wind,$pts[0],$pts[1] & @CRLF)
+				EndIf
+				sleep(1050)
+			Next
+		Else
+			ControlSend($wind, "", "", $k)
+		EndIf
+	Else
+		Send($k)
+		;ControlSend("UOSA","","",$k)
+	EndIf
+	;ConsoleWrite("Sending: " & $k & @CRLF)
+EndFunc
+
+func conclude_points()
+	$clicking=false
+	_make_bind($click_s,"Click"&$used_clicks & "       |" & $click_string)
+	GUIDelete($guu)
+	redo_gui()
+EndFunc
+
+func add_point()
+	$me=""
+	if $used_clicks Then
+		$me=";"
+	EndIf
+	$a = WinGetPos("Ultima Online")
+	$b = MouseGetPos()
+	$me&=$b[0]-$a[0] - 8 & "," & $b[1]-$a[1] - 31
+	$click_string&=$me
+	ConsoleWrite($click_string & @CRLF)
+	$last_dbl=false
+	$olds=GUICtrlRead($bindings_label)
+	GUICtrlSetData($bindings_label,$olds & "|")
+	$used_clicks+=1
+EndFunc
+
+Func convert_last_to_double()
+	if $last_dbl Then
+		Return
+	EndIf
+	$all_clicks = StringSplit($click_string,";")
+	$all_clicks[$all_clicks[0]]=":"&$all_clicks[$all_clicks[0]]
+	$click_string=$all_clicks[1]
+	for $i = 2 to $all_clicks[0]
+		$click_string&=";"&$all_clicks[$i]
+	Next
+	ConsoleWrite($click_string & @CRLF)
+	$last_dbl=true
+	$olds=GUICtrlRead($bindings_label)
+	GUICtrlSetData($bindings_label,StringLeft($olds,StringLen($olds)-1) & ":")
+EndFunc
+
+Func save_bindings()
+	$bindingsfd = FileOpen("bindings.txt", $FO_OVERWRITE)
+	$bs = StringSplit(GUICtrlRead($bindings_label),@CRLF,$STR_ENTIRESPLIT)
+	Local $sstr
+	for $i = 1 to $bs[0]
+		$sstr = StringSplit($bs[$i],'-',$STR_NOCOUNT)[0]
+		FileWriteLine($bindingsfd,$sstr & "->" & $bindings.Item($sstr))
+	Next
+EndFunc
+
+Func load_bindings()
+	$bindingsfd = FileOpen("bindings.txt", $FO_READ)
+	Local $read
+	while True
+		$read=FileReadLine($settingfd)
+		ConsoleWrite($read & @CRLF)
+		if @error == -1 or $read == "" Then
+			ExitLoop
+		EndIf
+		$strs=StringSplit($read,"->",3)
+		_make_bind($strs[0],$strs[1])
+	WEnd
+EndFunc
+
 Func redo_gui()
 	$add = 0
+	$add2=0
 	If $use_binds Then
-		$add = 3
+		$add = 2
+		if $binding_count Then
+			$add2 = 7
+		EndIf
 	EndIf
-	$guu = GUICreate("uover", $winwidth, ($skill_lines + $add) * $line_dist + $minh, $winx, $winy)
+	$guu = GUICreate("uover", $winwidth, ($skill_lines + $add) * $line_dist + $minh + $binding_count*13+$add2, $winx, $winy)
 	WinSetOnTop($guu, "", $WINDOWS_ONTOP)
 	GUISetState(@SW_SHOW, $guu)
-	For $i = 0 To $skill_lines
-		$gui_lines[$i] = 0
-		$gui_time[$i] = 0
-		$gui_sound[$i] = -100
-	Next
-	If $use_binds Then
-		$create_binding_button = GUICtrlCreateButton("create binding", 12, ($skill_lines + 1) * $line_dist + 5)
-		$AFK_button = GUICtrlCreateButton("AFK", 90, ($skill_lines + 1) * $line_dist + 5)
-		If $AFK Then
-			GUICtrlSetColor($AFK_button, 0x8CD248)
+	if $clicking Then
+		GUICtrlCreateLabel("right click to set pos" & @CRLF & "hold to double click" & @CRLF & "esc to end clickset",10,10)
+		$bindings_label = GUICtrlCreateLabel("",10,48,600,15)
+	Else
+		For $i = 0 To $skill_lines
+			$gui_lines[$i] = 0
+			$gui_time[$i] = 0
+			$gui_sound[$i] = -100
+		Next
+		If $use_binds Then
+			$create_binding_button = GUICtrlCreateButton("Create", 5, ($skill_lines + 1) * $line_dist + 5)
+			$save_button = GUICtrlCreateButton("Save", 45, ($skill_lines + 1) * $line_dist + 5)
+			$load_button = GUICtrlCreateButton("Load", 80, ($skill_lines + 1) * $line_dist + 5)
+			$AFK_button = GUICtrlCreateButton("AFK", 115, ($skill_lines + 1) * $line_dist + 5)
+			If $AFK Then
+				GUICtrlSetColor($AFK_button, 0x8CD248)
+			EndIf
+			;$AFKcheckbox=GUICtrlCreateCheckbox("",120,($skill_lines+1)*$line_dist+7,20,20)
+			$binding_skill = GUICtrlCreateInput("Skill", 4, ($skill_lines + 2) * $line_dist + 5, 50, 20)
+			GUICtrlCreateLabel("->", 58, ($skill_lines + 2) * $line_dist + 5)
+			$binding_key = GUICtrlCreateInput("key", 70, ($skill_lines + 2) * $line_dist + 5, 50, 20)
+			$bindings_label = GUICtrlCreateLabel($bindstr, 4, ($skill_lines + 3) * $line_dist + 5, $winwidth - 8, $binding_count*13)
 		EndIf
-		;$AFKcheckbox=GUICtrlCreateCheckbox("",120,($skill_lines+1)*$line_dist+7,20,20)
-		$binding_skill = GUICtrlCreateInput("Skill", 4, ($skill_lines + 2) * $line_dist + 5, 50, 20)
-		GUICtrlCreateLabel("->", 58, ($skill_lines + 2) * $line_dist + 5)
-		$binding_key = GUICtrlCreateInput("key", 70, ($skill_lines + 2) * $line_dist + 5, 50, 20)
-		$bindings_label = GUICtrlCreateLabel($bindstr, 4, ($skill_lines + 3) * $line_dist + 5, $winwidth - 8, 25)
 	EndIf
 EndFunc   ;==>redo_gui
 
 Func bind()
 	$s = GUICtrlRead($binding_skill)
 	$k = GUICtrlRead($binding_key)
-	$bindings.Item($s) = $k
+	if $k == "click" or $k == "Click" Then
+		$clicking=True
+		$used_clicks=0
+		$click_string=""
+		$click_s=$s
+		GUIDelete($guu)
+		redo_gui()
+		return
+	EndIf
 	GUICtrlSetData($binding_skill, "Skill")
 	GUICtrlSetData($binding_key, "key")
+	_make_bind($s,$k)
+EndFunc   ;==>bind
+
+Func _make_bind($s,$k)
+	$bindings.Item($s) = $k
 	If $binding_count <> 0 Then
-		$bindstr &= " | "
+		$bindstr &= @CRLF
 	EndIf
-	$bindstr &= $s & "->" & $k
+	$bindstr &= $s & "->" & StringSplit($k," ",$STR_NOCOUNT)[0]
 	GUICtrlSetData($bindings_label, $bindstr)
 	$binding_count += 1
-
-EndFunc   ;==>bind
+	GUIDelete($guu)
+	redo_gui()
+EndFunc
 
 Func sort()
 	Local $storet, $storemsg
@@ -354,7 +502,6 @@ Func get_time_req($skill_level)
 	EndIf
 EndFunc   ;==>get_time_req
 
-
 Func convert_enhanced_timestamp($stamp)
 	Local $timestampFormatted = StringRegExpReplace($stamp, "\]\[", " ")
 	$timestampFormatted = "20" & StringRegExpReplace($timestampFormatted, "\]|\[", "")
@@ -376,11 +523,16 @@ Func read_setting()
 	Return (StringSplit(FileReadLine($settingfd), "=", $STR_NOCOUNT)[1])
 EndFunc   ;==>read_setting
 
-Func Func VirtualMouseClick($window,$x,$y)
-    Sleep(100)
-    _WinAPI_PostMessage($hwnd, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
-    Sleep(50)
-    _WinAPI_PostMessage($hwnd, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+Func VirtualMouseClick($window,$x,$y)
+    _WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+EndFunc
+
+Func VirtualMouseDClick($window,$x,$y)
+	_WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y)) ;$WM_LBUTTONDBLCLK
+    _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
 EndFunc
 
 Func MyQuit()
