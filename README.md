@@ -37,6 +37,7 @@ Hotkeys:
   * Ctrl+Alt+T: execute the binding associated with the string currently in the skill input field
 
 Bindings:
+  * MUST BE RAN IN ADMINISTRATOR MODE
   * type the skill into the left input field, and the desired keypress into the right input field.
   * then click "Create" to add this binding, now if the skill on the left ever has a gain to get, the key on the right will be sent in an attempt to gain it
   * There are a few special phrases that can be entered into the key field:
