@@ -5,9 +5,14 @@
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
+
+
+#include <WinAPI.au3>
+#include <WindowsConstants.au3>
+#include <WinAPISysWin.au3>
+
 #include <Constants.au3>
 #include <MsgBoxConstants.au3>
-#include <WinAPI.au3>
 #include <GUIConstantsEx.au3>
 #include <GuiButton.au3>
 #include <Date.au3>
@@ -234,7 +239,14 @@ While True
 							$k = "{" & $bind & "}"
 						EndIf
 						If $classic Then
-							ControlSend("Ultima Online", "", "", $k)
+							$wind = WinGetHandle("Ultima Online")
+							if @error <> 0 Then
+								error_quit("can't find uo window")
+							EndIf
+							if $k == "click" Then
+								VirtualMouseClick($wind,0,1)
+							EndIf
+							ControlSend($wind, "", "", $k)
 						Else
 							Send($k)
 							;ControlSend("UOSA","","",$k)
@@ -363,6 +375,13 @@ EndFunc   ;==>error_quit
 Func read_setting()
 	Return (StringSplit(FileReadLine($settingfd), "=", $STR_NOCOUNT)[1])
 EndFunc   ;==>read_setting
+
+Func Func VirtualMouseClick($window,$x,$y)
+    Sleep(100)
+    _WinAPI_PostMessage($hwnd, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
+    Sleep(50)
+    _WinAPI_PostMessage($hwnd, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+EndFunc
 
 Func MyQuit()
 	if $use_alarm Then
