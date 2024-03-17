@@ -418,7 +418,7 @@ Func redo_gui()
 	WinSetOnTop($guu, "", $WINDOWS_ONTOP)
 	GUISetState(@SW_SHOW, $guu)
 	if $clicking Then
-		GUICtrlCreateLabel("right click to set pos" & @CRLF & "hold to double click" & @CRLF & "esc to end clickset",10,10)
+		GUICtrlCreateLabel("press s to set pos" & @CRLF & "hold to double click" & @CRLF & "esc to end clickset",10,10)
 		$bindings_label = GUICtrlCreateLabel("",10,48,600,15)
 	Else
 		For $i = 0 To $skill_lines
