@@ -46,7 +46,7 @@ Global $click_string=""
 Global $gui_lines[$max_skills + 1]
 Global $gui_time[$max_skills + 1]
 Global $gui_sound[$max_skills + 1]
-Global $time_and_skill[$max_skills + 1][2]
+Global $time_and_skill[$max_skills + 1][3]
 Global $skill_lines = -1
 Global $settingfd = FileOpen("settings.txt", $FO_READ)
 Global $create_binding_button, $AFK_button, $save_button, $load_button
@@ -221,7 +221,8 @@ While True
 			$vals = StringSplit($dict($vKey), ",", $STR_NOCOUNT)
 			$t = get_time_req($vals[0]) - CalculateTimeDifferenceInSeconds($vals[1])
 			$time_and_skill[$i][0] = $t
-			$time_and_skill[$i][1] = $vkey & " -> " & $vals[0]
+			$time_and_skill[$i][1] = $vkey
+			$time_and_skill[$i][2] = $vals[0]
 			$i += 1
 		Next
 		If $i -1  > $skill_lines Then
@@ -241,8 +242,7 @@ While True
 				EndIf
 			EndIf
 			$s = $time_and_skill[$i][1]
-			$skill_split=StringSplit($s," ",$STR_NOCOUNT)
-			GUICtrlSetData($gui_lines[$i], StringLeft($skill_split[0],10) & " " & $skill_split[1] & " " & $skill_split[2])
+			GUICtrlSetData($gui_lines[$i], StringLeft($s,10) & " -> " & $time_and_skill[$i][2])
 			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
 			if $use_alarm Then
 				$this_skill_beep=True
