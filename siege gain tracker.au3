@@ -184,8 +184,8 @@ While True
 			$sk = StringInStr($l, "Your skill in ")
 			If $sk Then
 				$skill_and_after = StringMid($l, $sk + 14)
-				$space = StringInStr($skill_and_after, " ")
-				$skill = StringMid($skill_and_after, 1, $space - 1)
+				$post_skill = StringInStr($skill_and_after, " has")
+				$skill = StringMid($skill_and_after, 1, $post_skill - 1)
 				$up = StringInStr($skill_and_after, "inc")
 				if $up <> 0 Then
 					$new_val = StringRight($skill_and_after,7)
