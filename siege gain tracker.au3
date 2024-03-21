@@ -136,7 +136,7 @@ While True
 	for $i = 0 to $skill_lines
 		If $idMsg == $gui_sound[$i] Then
 			$s = $time_and_skill[$i][1]
-			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
+			$s = StringSplit($s, ":", $STR_NOCOUNT)[0]
 			$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
 			if $old[3]=="1" Then
 				GUICtrlSetImage($gui_sound[$i], "mute.ico")
@@ -243,11 +243,10 @@ While True
 			$s = $time_and_skill[$i][1]
 			$skill_split=StringSplit($s,":",$STR_NOCOUNT)
 			GUICtrlSetData($gui_lines[$i], StringLeft($skill_split[0],10) & " " & $skill_split[1] & " " & $skill_split[2])
-			$s = StringSplit($s, " ", $STR_NOCOUNT)[0]
+			$s = $skill_split[0]
 			if $use_alarm Then
 				$this_skill_beep=True
-				$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
-				;ConsoleWrite($old & @CRLF)
+				;$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
 				if StringSplit($dict.Item($s),",",$STR_NOCOUNT)[3] == "1" Then
 					GUICtrlSetImage($gui_sound[$i], "sound.ico")
 				Else
