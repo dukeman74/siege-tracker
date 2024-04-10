@@ -119,10 +119,13 @@ While True
 		EndIf
 	EndIf
 	if $clicking Then
-		If _IsPressed("1B", $hDLL) Then
+		If _IsPressed("0D", $hDLL) Then
 			conclude_points()
 		EndIf
-		If _IsPressed("53", $hDLL) Then
+		If _IsPressed("1B", $hDLL) Then
+			abandon_points()
+		EndIf
+		If _IsPressed("4C", $hDLL) Then
 			if $last_down and TimerDiff($last_click)>700 Then
 				convert_last_to_double()
 			ElseIf not $last_down Then
@@ -130,7 +133,15 @@ While True
 				$last_click=TimerInit()
 			EndIf
 		EndIf
-		$last_down=_IsPressed("53", $hDLL)
+		If _IsPressed("52", $hDLL) Then
+			if $last_down and TimerDiff($last_click)>700 Then
+				convert_last_to_double()
+			ElseIf not $last_down Then
+				add_point(True)
+				$last_click=TimerInit()
+			EndIf
+		EndIf
+		$last_down=_IsPressed("4C", $hDLL) or _IsPressed("52", $hDLL)
 		ContinueLoop
 	EndIf
 	for $i = 0 to $skill_lines
@@ -314,20 +325,34 @@ Func follow_bind($bind)
 			$clicks = StringSplit(StringSplit($k,"|",$STR_NOCOUNT)[1],";")
 			Local $click
 			Local $bd
+			Local $right
 			for $i = 1 to $clicks[0]
 				$click=$clicks[$i]
 				$db=false
+				$right=False
 				if StringLeft($click,1)==':' Then
 					$click=StringMid($click,2)
 					$db=true
 				EndIf
+				if StringLeft($click,1)=='r' Then
+					$click=StringMid($click,2)
+					$right=true
+				EndIf
 				$pts=StringSplit($click,",",$STR_NOCOUNT)
 				if $db Then
 					ConsoleWrite("double clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
-					VirtualMouseDClick($wind,$pts[0],$pts[1])
+					if $right Then
+						VirtualMouseDRClick($wind,$pts[0],$pts[1])
+					Else
+						VirtualMouseDClick($wind,$pts[0],$pts[1])
+					EndIf
 				Else
 					ConsoleWrite("clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
-					VirtualMouseClick($wind,$pts[0],$pts[1] & @CRLF)
+					if $right Then
+						VirtualMouseRClick($wind,$pts[0],$pts[1])
+					Else
+						VirtualMouseClick($wind,$pts[0],$pts[1])
+					EndIf
 				EndIf
 				sleep(1050)
 			Next
@@ -342,16 +367,24 @@ Func follow_bind($bind)
 EndFunc
 
 func conclude_points()
-	$clicking=false
 	_make_bind($click_s,"Click"&$used_clicks & "       |" & $click_string)
+	abandon_points()
+EndFunc
+
+func abandon_points()
+	$clicking=false
 	GUIDelete($guu)
 	redo_gui()
 EndFunc
 
-func add_point()
+
+func add_point($right=false)
 	$me=""
 	if $used_clicks Then
 		$me=";"
+	EndIf
+	if $right Then
+		$me&="r"
 	EndIf
 	$a = WinGetPos("Ultima Online")
 	$b = MouseGetPos()
@@ -417,7 +450,7 @@ Func redo_gui()
 	WinSetOnTop($guu, "", $WINDOWS_ONTOP)
 	GUISetState(@SW_SHOW, $guu)
 	if $clicking Then
-		GUICtrlCreateLabel("press s to set pos" & @CRLF & "hold to double click" & @CRLF & "esc to end clickset",10,10)
+		GUICtrlCreateLabel("press l/r to set pos" & @CRLF & "hold to double click" & @CRLF & "enter:add     esc:cancel",10,10)
 		$bindings_label = GUICtrlCreateLabel("",10,48,600,15)
 	Else
 		For $i = 0 To $skill_lines
@@ -522,6 +555,18 @@ Func read_setting()
 	Return (StringSplit(FileReadLine($settingfd), "=", $STR_NOCOUNT)[1])
 EndFunc   ;==>read_setting
 
+Func VirtualMouseRClick($window,$x,$y)
+    _WinAPI_PostMessage($window, $WM_RBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_RBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+EndFunc
+
+Func VirtualMouseDRClick($window,$x,$y)
+	_WinAPI_PostMessage($window, $WM_RBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_RBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_RBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
+    _WinAPI_PostMessage($window, $WM_RBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
+EndFunc
+
 Func VirtualMouseClick($window,$x,$y)
     _WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
     _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
@@ -530,7 +575,7 @@ EndFunc
 Func VirtualMouseDClick($window,$x,$y)
 	_WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
     _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
-    _WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y)) ;$WM_LBUTTONDBLCLK
+    _WinAPI_PostMessage($window, $WM_LBUTTONDOWN, 1, _WinAPI_MakeLong($x, $y))
     _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
 EndFunc
 
