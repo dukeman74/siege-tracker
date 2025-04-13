@@ -16,6 +16,8 @@ Settings:
   * SEARCHCHARS: how far back in the log file the script will look, may need to be increased if getting double gains that cause 2 skill losses as well
   * USECLASSIC: whether or not the classic client is being used
   * USEBINDS: whether or not the bind system should be used in order to be able to automatically attempt gains for certain skills once they are ready
+  * BINDDELAY: how long in miliseconds to wait between sending binds
+  * USEFOR<70: if you wish to use this script to get gains before the siege ruleset kicks in - this setting will treat under 70 skills as having a 1 second cooldown between gains.
   * USEALARM: whether or not the alarm system sould be used in order to alert the player when a gain is available   - individual skills can have their alarms muted
   * ALARMDELAY: How frequently the same skill will beep if it has still not gained while available
   * ENHANCEDPATH: the path to the EC log file (chat.log)

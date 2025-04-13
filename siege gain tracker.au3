@@ -60,6 +60,8 @@ $winy = Int(read_setting())
 $chars_back_inloop = read_setting()
 $classic = Int(read_setting())
 $use_binds = Int(read_setting())
+$bind_delay = Int(read_setting())
+$under70 = Int(read_setting())
 $use_alarm = Int(read_setting())
 $beep_delay = Int(read_setting())
 $epath = read_setting()
@@ -82,14 +84,14 @@ FileClose($settingfd)
 $line_dist = 30
 $AFK = False
 redo_gui()
+$70 = 1
 $80 = 5 * 60
 $90 = 8 * 60
 $100 = 12 * 60
 $INF = 15 * 60
 $poll_freq = 40
 $poll_cnt = 0
-$charback = 6000
-$bind_delay = 6000
+$charback = 10;6000
 $afk_delay = 5 * 60 * 1000
 $last_press = TimerInit()
 $last_AFK = TimerInit()
@@ -192,26 +194,32 @@ While True
 		FileReadLine($fd)
 		$l = FileReadLine($fd)
 		While $l <> ""
+			;ConsoleWrite($l & @CRLF)
 			$sk = StringInStr($l, "Your skill in ")
 			If $sk Then
 				$skill_and_after = StringMid($l, $sk + 14)
 				$post_skill = StringInStr($skill_and_after, " has")
 				$skill = StringMid($skill_and_after, 1, $post_skill - 1)
+
 				$up = StringInStr($skill_and_after, "inc")
 				if $up <> 0 Then
 					$new_val = StringRight($skill_and_after,7)
 					$new_val=StringLeft($new_val,5)
-					if StringLeft($new_val,1) == " " Then
+					if StringLeft($new_val,1) == "w" Then
+						$new_val=StringRight($new_val,3)
+					ElseIf StringLeft($new_val,1) == " " Then
 						$new_val=StringRight($new_val,4)
 					EndIf
 					$new_val=Number($new_val)
-					If $new_val > 70 Then
+					If $new_val > 70 or $under70 Then
 						$old = "0,,,1"
 						If $dict.Exists($skill) Then
 							$old = $dict.Item($skill)
 						EndIf
 						$old = StringSplit($old, ",", $STR_NOCOUNT)
 						$old_val = Number($old[0])
+						;ConsoleWrite($old_val & @CRLF)
+						;ConsoleWrite($new_val & @CRLF)
 						If $old_val < $new_val Then
 							ConsoleWrite("skill gain in " & $skill & ": " & $old_val & "->" & $new_val & @CRLF)
 							If $classic Then
@@ -273,6 +281,7 @@ While True
 					$bind = $bindings.Item($s)
 					If TimerDiff($last_press) > $bind_delay Then
 						follow_bind($bind)
+						;ConsoleWrite("doing bind" & @CRLF)
 						$last_press = TimerInit()
 					EndIf
 				else
@@ -523,7 +532,9 @@ Func sort()
 EndFunc   ;==>sort
 
 Func get_time_req($skill_level)
-	If $skill_level < 80 Then
+	If $skill_level < 70 Then
+		Return ($70)
+	ElseIf $skill_level < 80 Then
 		Return ($80)
 	ElseIf $skill_level < 90 Then
 		Return ($90)
@@ -596,6 +607,8 @@ Func MyQuit()
 	FileWriteLine($settingsfd, "SEARCHCHARS=" & $chars_back_inloop)
 	FileWriteLine($settingsfd, "USECLASSIC=" & $classic)
 	FileWriteLine($settingsfd, "USEBINDS=" & $use_binds)
+	FileWriteLine($settingsfd, "BINDDELAY=" & $bind_delay)
+	FileWriteLine($settingsfd, "USEFOR<70=" & $under70)
 	FileWriteLine($settingsfd, "USEALARM=" & $use_alarm)
 	FileWriteLine($settingsfd, "ALARMDELAY=" & $beep_delay)
 	FileWriteLine($settingsfd, "ENHANCEDPATH=" & $epath)

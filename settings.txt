@@ -1,10 +1,12 @@
-WINDOWX=1747
-WINDOWY=803
-SEARCHCHARS=800
+WINDOWX=1685
+WINDOWY=770
+SEARCHCHARS=900
 USECLASSIC=1
 USEBINDS=1
+BINDDELAY=2000
+USEFOR<70=0
 USEALARM=0
 ALARMDELAY=30000
 ENHANCEDPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log
-CLASSICPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Classic\Journal\Journal.txt
+CLASSICPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Classic\journal.txt
 ALARMPATH=soft_alarm.wav
