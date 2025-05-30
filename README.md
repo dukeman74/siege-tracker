@@ -10,6 +10,7 @@ Features:
     * Automate keypresses, including in the background
     * Automate mouse clicks, including in the background
 
+--run the program once for the settings file to be generated--\
 Settings:
   * WINDOWX: where the window is placed at startup
   * WINDOWY: where the window is placed at startup

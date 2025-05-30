@@ -31,14 +31,10 @@ Opt("GUICloseOnESC", 0)
 $winwidth = 150
 $defaultx = 1920 - $winwidth
 $defaulty = 4
-$winx = $defaultx
-$winy = $defaulty
-$fpath = "C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log"
-$classic = False
 $minh = 30
 Global $guu
 $max_skills = 9
-$chars_back_inloop = 600
+
 $clicking = False
 $used_clicks=0
 Global $click_string=""
@@ -48,25 +44,61 @@ Global $gui_time[$max_skills + 1]
 Global $gui_sound[$max_skills + 1]
 Global $time_and_skill[$max_skills + 1][2]
 Global $skill_lines = -1
-Global $settingfd = FileOpen("settings.txt", $FO_READ)
 Global $create_binding_button, $AFK_button, $save_button, $load_button
 Global $binding_skill
 Global $binding_key
 Global $bindings_label
 Global $binding_count = 0
 Global $bindstr = ""
-$winx = Int(read_setting())
-$winy = Int(read_setting())
-$chars_back_inloop = read_setting()
-$classic = Int(read_setting())
-$use_binds = Int(read_setting())
-$bind_delay = Int(read_setting())
-$under70 = Int(read_setting())
-$use_alarm = Int(read_setting())
-$beep_delay = Int(read_setting())
-$epath = read_setting()
-$cpath = read_setting()
-$alarm_path = read_setting()
+
+$setting_map = ObjCreate("Scripting.Dictionary")
+func _add_setting($name, $value)
+	$setting_map.item($name) = $value
+EndFunc
+if True Then ; default settings
+	_add_setting("WINDOWX","800")
+	_add_setting("WINDOWY","800")
+	_add_setting("SEARCHCHARS","900")
+	_add_setting("USECLASSIC","1")
+	_add_setting("USEBINDS","1")
+	_add_setting("BINDDELAY","2400")
+	_add_setting("USEFOR<70","1")
+	_add_setting("USEALARM","0")
+	_add_setting("ALARMDELAY","30000")
+	_add_setting("ENHANCEDPATH","C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log")
+	_add_setting("CLASSICPATH","C:\Program Files (x86)\Electronic Arts\Ultima Online Classic\JERNEL.txt")
+	_add_setting("ALARMPATH","data\soft_alarm.wav")
+EndIf
+if True Then ; read settings
+	Global $settingfd = FileOpen("settings.txt", $FO_READ)
+	$line = FileReadLine($settingfd)
+	while @error == 0 ; 1 for file no exist, -1 for EOF
+		$combo = StringSplit($line, "=", $STR_NOCOUNT)
+		$name = $combo[0]
+		$value = $combo[1]
+		if $setting_map.exists($name) then
+			$setting_map.item($name) = $value
+		Else
+			ConsoleWrite("old/garbage setting in settings file" & @CRLF)
+		EndIf
+
+		$line = FileReadLine($settingfd)
+	WEnd
+	FileClose($settingfd)
+EndIf
+Global $settingfd = FileOpen("settings.txt", $FO_READ)
+$winx = Int($setting_map.item("WINDOWX"))
+$winy = Int($setting_map.item("WINDOWY"))
+$chars_back_inloop = Int($setting_map.item("SEARCHCHARS"))
+$classic = Int($setting_map.item("USECLASSIC"))
+$use_binds = Int($setting_map.item("USEBINDS"))
+$bind_delay = Int($setting_map.item("BINDDELAY"))
+$under70 = Int($setting_map.item("USEFOR<70"))
+$use_alarm = Int($setting_map.item("USEALARM"))
+$beep_delay = Int($setting_map.item("ALARMDELAY"))
+$epath = $setting_map.item("ENHANCEDPATH")
+$cpath = $setting_map.item("CLASSICPATH")
+$alarm_path = $setting_map.item("ALARMPATH")
 $fpath = $epath
 $click_delay = 1200
 If $classic == 1 Then
@@ -190,7 +222,7 @@ While True
 			error_quit("log file failed to open")
 		EndIf
 		FileSetPos($fd, -$charback, $FILE_END)
-		$charback = $chars_back_inloop
+		$charback = $setting_map.item("SEARCHCHARS")
 		;ConsoleWrite("reading log -- " & @CRLF)
 		FileReadLine($fd)
 		$l = FileReadLine($fd)
@@ -592,6 +624,10 @@ Func VirtualMouseDClick($window,$x,$y)
     _WinAPI_PostMessage($window, $WM_LBUTTONUP, 0, _WinAPI_MakeLong($x, $y))
 EndFunc
 
+Func save_settings()
+
+EndFunc
+
 Func MyQuit()
 	if $use_alarm Then
 		_SoundClose($alarm_sound)
@@ -606,6 +642,7 @@ Func MyQuit()
 	EndIf
 	FileWriteLine($settingsfd, "WINDOWX=" & $x)
 	FileWriteLine($settingsfd, "WINDOWY=" & $y)
+	; iterate through instead
 	FileWriteLine($settingsfd, "SEARCHCHARS=" & $chars_back_inloop)
 	FileWriteLine($settingsfd, "USECLASSIC=" & $classic)
 	FileWriteLine($settingsfd, "USEBINDS=" & $use_binds)
