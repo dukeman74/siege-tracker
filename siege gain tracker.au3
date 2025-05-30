@@ -1,5 +1,5 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Icon=icon.ico
+#AutoIt3Wrapper_Icon=data\icon.ico
 #AutoIt3Wrapper_Outfile=siege gain tracker_x86.exe
 #AutoIt3Wrapper_Outfile_x64=siege gain tracker_x64.exe
 #AutoIt3Wrapper_Compile_Both=y
@@ -59,6 +59,7 @@ if True Then ; default settings
 	_add_setting("WINDOWX","800")
 	_add_setting("WINDOWY","800")
 	_add_setting("SEARCHCHARS","900")
+	_add_setting("INITALSEARCHCHARS","10000")
 	_add_setting("USECLASSIC","1")
 	_add_setting("USEBINDS","1")
 	_add_setting("BINDDELAY","2400")
@@ -90,6 +91,7 @@ Global $settingfd = FileOpen("settings.txt", $FO_READ)
 $winx = Int($setting_map.item("WINDOWX"))
 $winy = Int($setting_map.item("WINDOWY"))
 $chars_back_inloop = Int($setting_map.item("SEARCHCHARS"))
+$charback = Int($setting_map.item("INITALSEARCHCHARS"))
 $classic = Int($setting_map.item("USECLASSIC"))
 $use_binds = Int($setting_map.item("USEBINDS"))
 $bind_delay = Int($setting_map.item("BINDDELAY"))
@@ -124,7 +126,6 @@ $100 = 12 * 60
 $INF = 15 * 60
 $poll_freq = 40
 $poll_cnt = 0
-$charback = 10000
 $afk_delay = 5 * 60 * 1000
 $last_press = TimerInit()
 $last_AFK = TimerInit()
@@ -642,17 +643,9 @@ Func MyQuit()
 	EndIf
 	FileWriteLine($settingsfd, "WINDOWX=" & $x)
 	FileWriteLine($settingsfd, "WINDOWY=" & $y)
-	; iterate through instead
-	FileWriteLine($settingsfd, "SEARCHCHARS=" & $chars_back_inloop)
-	FileWriteLine($settingsfd, "USECLASSIC=" & $classic)
-	FileWriteLine($settingsfd, "USEBINDS=" & $use_binds)
-	FileWriteLine($settingsfd, "BINDDELAY=" & $bind_delay)
-	FileWriteLine($settingsfd, "USEFOR<70=" & $under70)
-	FileWriteLine($settingsfd, "USEALARM=" & $use_alarm)
-	FileWriteLine($settingsfd, "ALARMDELAY=" & $beep_delay)
-	FileWriteLine($settingsfd, "ENHANCEDPATH=" & $epath)
-	FileWriteLine($settingsfd, "CLASSICPATH=" & $cpath)
-	FileWriteLine($settingsfd, "ALARMPATH=" & $alarm_path)
+	For $name in $setting_map
+		FileWriteLine($settingsfd, $name & "=" & $setting_map.item($name))
+	Next
 	FileClose($settingsfd)
 	Exit
 EndFunc   ;==>MyQuit
