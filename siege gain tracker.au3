@@ -68,6 +68,7 @@ $epath = read_setting()
 $cpath = read_setting()
 $alarm_path = read_setting()
 $fpath = $epath
+$click_delay = 1200
 If $classic == 1 Then
 	$fpath = $cpath
 EndIf
@@ -91,7 +92,7 @@ $100 = 12 * 60
 $INF = 15 * 60
 $poll_freq = 40
 $poll_cnt = 0
-$charback = 10;6000
+$charback = 10000
 $afk_delay = 5 * 60 * 1000
 $last_press = TimerInit()
 $last_AFK = TimerInit()
@@ -328,45 +329,46 @@ Func follow_bind($bind)
 	If $classic Then
 		$wind = WinGetHandle("Ultima Online")
 		if @error <> 0 Then
-			error_quit("can't find uo window")
-		EndIf
-		if $clicking_bind Then
-			$clicks = StringSplit(StringSplit($k,"|",$STR_NOCOUNT)[1],";")
-			Local $click
-			Local $bd
-			Local $right
-			for $i = 1 to $clicks[0]
-				$click=$clicks[$i]
-				$db=false
-				$right=False
-				if StringLeft($click,1)==':' Then
-					$click=StringMid($click,2)
-					$db=true
-				EndIf
-				if StringLeft($click,1)=='r' Then
-					$click=StringMid($click,2)
-					$right=true
-				EndIf
-				$pts=StringSplit($click,",",$STR_NOCOUNT)
-				if $db Then
-					ConsoleWrite("double clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
-					if $right Then
-						VirtualMouseDRClick($wind,$pts[0],$pts[1])
-					Else
-						VirtualMouseDClick($wind,$pts[0],$pts[1])
-					EndIf
-				Else
-					ConsoleWrite("clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
-					if $right Then
-						VirtualMouseRClick($wind,$pts[0],$pts[1])
-					Else
-						VirtualMouseClick($wind,$pts[0],$pts[1])
-					EndIf
-				EndIf
-				sleep(1050)
-			Next
+			ConsoleWrite("can't find uo window")
 		Else
-			ControlSend($wind, "", "", $k)
+			if $clicking_bind Then
+				$clicks = StringSplit(StringSplit($k,"|",$STR_NOCOUNT)[1],";")
+				Local $click
+				Local $bd
+				Local $right
+				for $i = 1 to $clicks[0]
+					$click=$clicks[$i]
+					$db=false
+					$right=False
+					if StringLeft($click,1)==':' Then
+						$click=StringMid($click,2)
+						$db=true
+					EndIf
+					if StringLeft($click,1)=='r' Then
+						$click=StringMid($click,2)
+						$right=true
+					EndIf
+					$pts=StringSplit($click,",",$STR_NOCOUNT)
+					if $db Then
+						ConsoleWrite("double clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
+						if $right Then
+							VirtualMouseDRClick($wind,$pts[0],$pts[1])
+						Else
+							VirtualMouseDClick($wind,$pts[0],$pts[1])
+						EndIf
+					Else
+						ConsoleWrite("clicking: (" & $pts[0] & ", " & $pts[1] & ")" & @CRLF)
+						if $right Then
+							VirtualMouseRClick($wind,$pts[0],$pts[1])
+						Else
+							VirtualMouseClick($wind,$pts[0],$pts[1])
+						EndIf
+					EndIf
+					sleep($click_delay)
+				Next
+			Else
+				ControlSend($wind, "", "", $k)
+			EndIf
 		EndIf
 	Else
 		Send($k)
