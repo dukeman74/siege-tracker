@@ -153,10 +153,10 @@ While True
 			$s = StringSplit($s, ":", $STR_NOCOUNT)[0]
 			$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
 			if $old[3]=="1" Then
-				GUICtrlSetImage($gui_sound[$i], "mute.ico")
+				GUICtrlSetImage($gui_sound[$i], "data\mute.ico")
 				$dict.Item($s)=$old[0] & "," &  $old[1] & "," & $old[2] & "," & "0"
 			Else
-				GUICtrlSetImage($gui_sound[$i], "sound.ico")
+				GUICtrlSetImage($gui_sound[$i], "data\sound.ico")
 				$dict.Item($s)=$old[0] & "," &  $old[1] & "," & $old[2] & "," & "1"
 			EndIf
 			ExitLoop
@@ -257,7 +257,7 @@ While True
 				$gui_time[$i] = GUICtrlCreateLabel("", 1, $i * $line_dist + 5, 30, 25)
 				if $use_alarm Then
 					$gui_sound[$i] = GUICtrlCreateButton("", $winwidth-20, $i * $line_dist + 3,20,20,$BS_ICON)
-					GUICtrlSetImage($gui_sound[$i], "sound.ico")
+					GUICtrlSetImage($gui_sound[$i], "data\sound.ico")
 				EndIf
 			EndIf
 			$s = $time_and_skill[$i][1]
@@ -268,9 +268,9 @@ While True
 				$this_skill_beep=True
 				;$old=StringSplit($dict.Item($s),",",$STR_NOCOUNT)
 				if StringSplit($dict.Item($s),",",$STR_NOCOUNT)[3] == "1" Then
-					GUICtrlSetImage($gui_sound[$i], "sound.ico")
+					GUICtrlSetImage($gui_sound[$i], "data\sound.ico")
 				Else
-					GUICtrlSetImage($gui_sound[$i], "mute.ico")
+					GUICtrlSetImage($gui_sound[$i], "data\mute.ico")
 					$this_skill_beep=False
 				EndIf
 			EndIf

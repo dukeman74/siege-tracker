@@ -9,4 +9,4 @@ USEALARM=0
 ALARMDELAY=30000
 ENHANCEDPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Enhanced\logs\chat.log
 CLASSICPATH=C:\Program Files (x86)\Electronic Arts\Ultima Online Classic\JERNEL.txt
-ALARMPATH=soft_alarm.wav
+ALARMPATH=data\soft_alarm.wav
